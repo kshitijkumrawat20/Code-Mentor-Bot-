@@ -10,6 +10,7 @@ I have developed a Minimum Viable Product (MVP) that provides the following func
 #### Key Challenges
 
 The most challenging task was selecting a suitable model for the project. The recommended models often proved to be inaccurate for the required tasks. I experimented with fine-tuning and training models, but the results did not meet the desired accuracy levels.
+I emphasized on developing a backend as mentioned in the guidelines rather than focusing on frontend.
 
 #### Model Selection
 
