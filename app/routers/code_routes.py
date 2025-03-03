@@ -4,13 +4,16 @@ from typing import Optional
 from app.models.code_model import QwenCoderModel
 from app.services.complexity_analyzer import ComplexityAnalyzer
 from app.services.code_debug import CodeDebugger
+
 from app.services.code_converter import CodeConverter
+from app.services.get_suggestion import Suggestion
 
 router = APIRouter()
 model = QwenCoderModel()
 analyzer = ComplexityAnalyzer()
 debugger = CodeDebugger()
 converter = CodeConverter()
+suggester = Suggestion()
 
 class CodeRequest(BaseModel):
     code: str
@@ -53,3 +56,13 @@ async def analyze_complexity(request: CodeRequest):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+@router.post("/get_suggestions")
+async def get_suggestions(request: CodeRequest):
+    try:
+        analysis = analyzer.analyze_complexity(request.code)
+        debug_result = debugger.debug_code(request.code)
+        suggetions = suggester.get_suggestion(analysis=analysis, debuging=debug_result)
+        print(suggetions)
+        return suggetions
+    except Exception as e:
+        print(e)

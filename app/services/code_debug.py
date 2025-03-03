@@ -6,39 +6,44 @@ class CodeDebugger:
         self.model = QwenCoderModel()
 
     def debug_code(self, code: str) -> dict:
-        # Create a more structured prompt that explicitly asks for JSON format
         prompt = f"""You are a helpful code mentor bot. Analyze the following code and respond with ONLY a JSON object in the exact format shown below, with no additional text or explanation:
+        {{
+            "issues": [
+                {{
+                "line": <integer>,
+                "type": "<string: SyntaxError|LogicError|StyleError|OtherError>",
+                "description": "<string>",
+                "suggestion": "<string>"
+                }}
+            ],
+            "fixed_code": "<string>",
+            "summary": "<string>"
+        }}
 
-{{
-  "issues": [
-    {{
-      "line": <integer>,
-      "type": "<string: SyntaxError|LogicError|StyleError|OtherError>",
-      "description": "<string>",
-      "suggestion": "<string>"
-    }}
-  ],
-  "fixed_code": "<string>",
-  "summary": "<string>"
-}}
-
-Code to analyze:
-{code}
-"""
+        Code to analyze:
+        {code}
+        """
 
         # Get response from the model
         response = self.model.generate_code(prompt)
+        
+        # Extract the content from AIMessage
+        if hasattr(response, "content"):  
+            response_text = response.content  # Extracting
+        else:
+            response_text = str(response)  # Fallback
 
         # Clean the response to ensure it only contains the JSON part
         try:
             # Try to find JSON content between curly braces
-            start_idx = response.find('{')
-            end_idx = response.rfind('}') + 1
+            start_idx = response_text.find('{')
+            print(start_idx)
+            end_idx = response_text.rfind('}') + 1
             if start_idx != -1 and end_idx != 0:
-                json_str = response[start_idx:end_idx]
+                json_str = response_text[start_idx:end_idx]
                 debug_info = json.loads(json_str)
             else:
-                raise json.JSONDecodeError("No JSON found", response, 0)
+                raise json.JSONDecodeError("No JSON found", response_text, 0)
 
             # Validate the required fields
             required_fields = ['issues', 'fixed_code', 'summary']

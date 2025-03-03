@@ -1,0 +1,46 @@
+name: Deploy to AWS EC2
+
+on:
+  push:
+    branches:
+      - main  # Or your main branch name
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1  # Replace with your AWS region
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v1
+
+      - name: Build, tag, and push image to Amazon ECR
+        id: build-image
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          ECR_REPOSITORY: code-mentor-bot  # Replace with your ECR repository name
+          IMAGE_TAG: latest
+        run: |
+          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+
+      - name: SSH into EC2 instance and run deployment script
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.EC2_HOST }}       # Replace with your EC2 instance public IP or DNS
+          username: ubuntu         # Replace with your EC2 instance username
+          key: ${{ secrets.EC2_SSH_KEY }} # Replace with your EC2 instance SSH Key
+          script: |
+            docker stop code-mentor-bot || true
+            docker rm code-mentor-bot || true
+            docker pull ${{ steps.login-ecr.outputs.registry }}/code-mentor-bot:latest
+            docker run -d -p 8000:8000 -p 8501:8501 --name code-mentor-bot ${{ steps.login-ecr.outputs.registry }}/code-mentor-bot:latest
