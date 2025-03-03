@@ -1,3 +1,4 @@
+import logging
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 from typing import Optional
@@ -7,6 +8,9 @@ from app.services.code_debug import CodeDebugger
 
 from app.services.code_converter import CodeConverter
 from app.services.get_suggestion import Suggestion
+
+# Configure logging
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
 router = APIRouter()
 model = QwenCoderModel()
@@ -23,13 +27,19 @@ class CodeRequest(BaseModel):
 @router.post("/debug")
 async def debug_code(request: CodeRequest):
     try:
+        logging.info(f"Received debug request: {request.code}")
         debug_result = debugger.debug_code(request.code)
+        # Ensure debug_result is a valid dictionary before attempting to serialize
+        if not isinstance(debug_result, dict):
+            raise ValueError("Debug result is not a dictionary")
+
         return {
             "issues": debug_result.get("issues", []),
             "fixed_code": debug_result.get("fixed_code", ""),
             "summary": debug_result.get("summary", "No summary available")
         }
     except Exception as e:
+        logging.exception(f"Error in debugging: {str(e)}")  # Log the exception with traceback
         raise HTTPException(status_code=500, detail=f"Error in debugging: {str(e)}")
 
 @router.post("/convert")
