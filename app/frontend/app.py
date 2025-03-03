@@ -13,7 +13,7 @@ def init_session_state():
         st.session_state.last_interaction = time.time()
     if 'action' not in st.session_state:
         st.session_state.action = None
-    if 'problem_statement' not in st.session_state:
+    if 'problem_statement' not in st.session_state: ##
         st.session_state.problem_statement = ""
 
 def display_code(code: str, language: str):
