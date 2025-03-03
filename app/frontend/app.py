@@ -3,7 +3,7 @@ import requests
 import json
 import time
 
-API_URL = "http://127.0.0.1:8000/api/v1"
+API_URL = "http://localhost:8000/api/v1"
 IDLE_TIMEOUT = 20  #
 
 def init_session_state():
