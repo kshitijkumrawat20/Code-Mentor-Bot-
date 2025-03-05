@@ -4,7 +4,7 @@ import json
 import time
 
 API_URL = "http://localhost:8000/api/v1"
-IDLE_TIMEOUT = 20  # in seconds 
+IDLE_TIMEOUT = 20  # in
 
 def init_session_state():
     if 'code_input' not in st.session_state:
